@@ -28,10 +28,8 @@ public class FrontServlet extends HttpServlet {
     @Override
     public void init() {
         defaultDispatcher = getServletContext().getNamedDispatcher("default");
-        urlMappings = (Map<String, String[]>) getServletContext().getAttribute("urlMappings");
-        if (urlMappings == null) {
-            urlMappings = new HashMap<>();
-        }
+        urlMappings = new HashMap<>();
+        scanControllers();
     }
 
     private void scanControllers() {
@@ -137,44 +135,25 @@ public class FrontServlet extends HttpServlet {
     private boolean handleAnnotatedControllers(HttpServletRequest req, HttpServletResponse res, String path) {
         try {
             String controllerPackage = getServletConfig().getInitParameter("Controllers");
-            if (controllerPackage == null) return false;
+            if (controllerPackage == null || urlMappings == null) return false;
 
-            ClassLoader loader = Thread.currentThread().getContextClassLoader();
-            URL packageUrl = loader.getResource(controllerPackage.replace('.', '/'));
-            if (packageUrl == null) return false;
+            // Normalisation pour ignorer le '/' final
+            String normalizedPath = path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
 
-            File dir = new File(URLDecoder.decode(packageUrl.getFile(), "UTF-8"));
-            if (!dir.exists() || !dir.isDirectory()) return false;
+            if (urlMappings.containsKey(normalizedPath)) {
+                String[] details = urlMappings.get(normalizedPath);
+                String className = details[0];
+                String methodName = details[1];
 
-            for (File file : dir.listFiles()) {
-                if (file.isFile() && file.getName().endsWith(".class")) {
-                    String className = file.getName().replace(".class", "");
-                    Class<?> clazz = Class.forName(controllerPackage + "." + className);
+                Class<?> clazz = Class.forName(controllerPackage + "." + className);
+                Object controllerInstance = clazz.getDeclaredConstructor().newInstance();
+                Method method = clazz.getMethod(methodName);
 
-                    if (clazz.isAnnotationPresent(AnnotationController.class)) {
-                        Object controllerInstance = clazz.getDeclaredConstructor().newInstance();
-                        String prefix = "/" + clazz.getAnnotation(AnnotationController.class).value();
-
-                        for (Method method : clazz.getDeclaredMethods()) {
-                            if (method.isAnnotationPresent(GetMethode.class)) {
-                                String methodPath = method.getAnnotation(GetMethode.class).value();
-                                String fullPath = prefix + methodPath;
-
-                                // Normalisation pour ignorer le '/' final
-                                String normalizedPath = path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
-                                String normalizedFullPath = fullPath.endsWith("/") ? fullPath.substring(0, fullPath.length() - 1) : fullPath;
-
-                                if (normalizedPath.equals(normalizedFullPath)) {
-                                    PrintWriter out = res.getWriter();
-                                    Object result = method.invoke(controllerInstance);
-                                    res.setContentType("text/html;charset=UTF-8");
-                                    out.println(result);
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
+                PrintWriter out = res.getWriter();
+                Object result = method.invoke(controllerInstance);
+                res.setContentType("text/html;charset=UTF-8");
+                out.println(result);
+                return true;
             }
         } catch (Exception e) {
             e.printStackTrace();

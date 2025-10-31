@@ -10,13 +10,13 @@
         <param-value>com.aki.controllers</param-value>
     </context-param>
 
-    <listener>
-        <listener-class>com.aki.p17.UrlMappingInitializer</listener-class>
-    </listener>
-
     <servlet>
         <servlet-name>FrontServlet</servlet-name>
         <servlet-class>com.aki.p17.FrontServlet</servlet-class>
+        <init-param>
+            <param-name>Controllers</param-name>
+            <param-value>com.aki.controllers</param-value>
+        </init-param>
     </servlet>
 
     <servlet-mapping>
