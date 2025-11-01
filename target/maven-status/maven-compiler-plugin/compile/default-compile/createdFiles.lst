@@ -1,0 +1,6 @@
+annotation\AnnotationController.class
+com\aki\controllers\TestController.class
+annotation\GetMethode.class
+com\aki\p17\UrlMappingInitializer.class
+com\aki\p17\App.class
+com\aki\p17\FrontServlet.class

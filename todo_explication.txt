@@ -1,0 +1,10 @@
+montrer tout les url et on le voit si on le supporte ou pas et on donne quel methode il est donner avec annotation
+au demarrage de l'appli qui utilise notre framework, il y aura un bout de code qui va scaner tout les url 
+url => class methode associer par annotation
+mettre dans init les operation tache
+le package doit dire que c'est le package a scanner dans le fichier de config spring app.config et montre les package scanner dans la class path
+(idéalement au démarage de l'app)
+mettre dans le contextinitialiser (mettre dans l'init d'abord)
+
+si on mets /list par exemple il montre le controller
+et il montre dans quel class il est et quel method il utilise
